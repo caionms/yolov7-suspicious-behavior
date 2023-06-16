@@ -22,9 +22,9 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized,
 from utils.download_weights import download
 
 #For keypoint detection
-from utils.general import non_max_suppression_kpt
-from utils.plots import output_to_keypoint,plot_one_box_kpt
-from utils.kpts_utils import run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts, bbox_iou_vehicle
+#from utils.general import non_max_suppression_kpt
+#from utils.plots import output_to_keypoint,plot_one_box_kpt
+from utils.kpts_utils import bbox_iou_vehicle#, run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts
 
 #For SORT tracking
 import skimage
