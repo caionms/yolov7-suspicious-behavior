@@ -896,6 +896,7 @@ def calcula_tempo(tempos, id, fps):
     if id not in tempos:
         tempos[id] = 1
     else:
+        tempos[id] = tempos[id]+1
         if(tempos[id]/fps > 3): # se a pessoa efetuou a pose por 3 segundos
             return True
     return False

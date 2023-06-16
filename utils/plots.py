@@ -511,7 +511,7 @@ def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categorie
             r, g, b = 0, 0, 255 #RED - Ordem inversa
         
         data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
-        label = str(id) + ": proximo de um veiculo" #+ names[cat]
+        label = str(id) + ": proximo de um veiculo (" + str(tempos[id]) + "f)"  #+ names[cat]
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
         cv2.rectangle(img, (x1, y1), (x2, y2), (r, g, b), 2)
         cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (r, g, b), -1)
