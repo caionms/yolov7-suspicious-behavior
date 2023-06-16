@@ -498,7 +498,7 @@ def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categorie
         x2 += offset[0]
         y1 += offset[1]
         y2 += offset[1]
-        cat = int(categories[i]) if categories is not None else 0
+        #cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
         
         #..................CALCULA TEMPO....................

@@ -176,12 +176,15 @@ def detect(save_img=False):
                         vehicles_objs.append([x1,y1,x2,y2])
                         
                 # chamada para calcular interseção
-                for person_box in persons_objs: 
+                for aux, person_box in enumerate(persons_objs): 
                     for vehicle_box in vehicles_objs:
                         if bbox_iou_vehicle(vehicle_box, person_box[:4]) > 0:
                             dets_to_sort = np.vstack((dets_to_sort, 
-                                person_box))
-                            persons_objs.remove(person_box)
+                                person_box.copy()))
+                            # Remover person_box de persons_objs
+                            persons_objs.pop(aux)
+                            # Pular para a próxima iteração do for de person_box
+                            break
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
