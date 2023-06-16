@@ -23,7 +23,7 @@ from utils.download_weights import download
 
 #For keypoint detection
 from utils.general import non_max_suppression_kpt
-from utils.plots import output_to_keypoint,colors,plot_one_box_kpt
+from utils.plots import output_to_keypoint,plot_one_box_kpt
 from utils.kpts_utils import run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts, bbox_iou_vehicle
 
 #For SORT tracking
