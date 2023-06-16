@@ -500,10 +500,10 @@ def draw_boxes(img, bbox, vehicles_objs, identities=None, categories=None, names
         cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
         data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
-        label = str(id) + ": Próximo de um veículo" #+ names[cat]
+        label = str(id) + ": proximo de um veiculo" #+ names[cat]
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-        cv2.rectangle(img, (x1, y1), (x2, y2), (255,0,20), 2)
-        cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (255,144,30), -1)
+        cv2.rectangle(img, (x1, y1), (x2, y2), (255,165,0), 2)
+        cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (255,165,0), -1)
         cv2.putText(img, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
                     0.6, [255, 255, 255], 1)
         # cv2.circle(img, data, 6, color,-1)   #centroid of box

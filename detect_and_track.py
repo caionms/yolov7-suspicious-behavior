@@ -173,9 +173,10 @@ def detect(save_img=False):
                 # chamada para calcular interseção
                 for person_box in persons_objs: 
                     for vehicle_box in vehicles_objs:
-                        if bbox_iou_vehicle(vehicle_box, person_box[:4]) > 0.10:
+                        if bbox_iou_vehicle(vehicle_box, person_box[:4]) > 0:
                             dets_to_sort = np.vstack((dets_to_sort, 
                                 person_box))
+                            persons_objs.remove(person_box)
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
@@ -191,14 +192,14 @@ def detect(save_img=False):
                 # draw boxes of non tracked person
                 for person in persons_objs:
                     if save_img or view_img:  # Add bbox to image
-                        label = f'{names[int(person[5])]} {conf:.2f}'
-                        plot_one_box(person[:4], im0, label=label, color=colors[int(person[5])], line_thickness=1)
+                        label = 'pessoa'
+                        plot_one_box(person[:4], im0, label=label, color=colors[int(person[-1])], line_thickness=1)
                 
                 # draw boxes of behicles
                 for vehicle in vehicles_objs:
                     if save_img or view_img:  # Add bbox to image
-                        label = f'{names[int(vehicle[5])]} {conf:.2f}'
-                        plot_one_box(vehicle[:4], im0, label=label, color=colors[int(vehicle[5])], line_thickness=1)
+                        label = 'veiculo'
+                        plot_one_box(vehicle, im0, label=label, color=colors[2], line_thickness=1)
 
                 '''
                 # Write results
