@@ -21,6 +21,11 @@ from utils.plots import plot_one_box, draw_boxes
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
 
+#For keypoint detection
+from utils.general import non_max_suppression_kpt
+from utils.plots import output_to_keypoint,colors,plot_one_box_kpt
+from utils.kpts_utils import run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts, bbox_iou_vehicle
+
 #For SORT tracking
 import skimage
 from sort import *
@@ -129,6 +134,11 @@ def detect(save_img=False):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
+        # Saves the boxes of vehicles
+        # Usado para calcular IoU
+        vehicles_objs = []
+        persons_objs = []
+
         # Process detections
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
@@ -156,20 +166,41 @@ def detect(save_img=False):
                 # NOTE: We send in detected object class too
                 for x1,y1,x2,y2,conf,detclass in det.cpu().detach().numpy():
                     if detclass == 0:
-                        dets_to_sort = np.vstack((dets_to_sort, 
-                                np.array([x1, y1, x2, y2, conf, detclass])))
-                
+                        persons_objs.append([x1, y1, x2, y2, conf, detclass])
+                    elif detclass == 2 or detclass == 3: #adiciona os veiculos na lista
+                        vehicles_objs.append([x1,y1,x2,y2])
+                        
+                # chamada para calcular interseção
+                for person_box in persons_objs: 
+                    for vehicle_box in vehicles_objs:
+                        if bbox_iou_vehicle(vehicle_box, person_box) > 0.10:
+                            dets_to_sort = np.vstack((dets_to_sort, 
+                                person_box))
+                        
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
-                tracks =sort_tracker.getTrackers()
+                tracks = sort_tracker.getTrackers()
                 
-                # draw boxes for visualization
+                # draw boxes of tracked person
                 if len(tracked_dets)>0:
                     bbox_xyxy = tracked_dets[:,:4]
                     identities = tracked_dets[:, 8]
                     categories = tracked_dets[:, 4]
-                    draw_boxes(im0, bbox_xyxy, identities, categories, names, txt_path)
+                    draw_boxes(im0, bbox_xyxy, vehicles_objs, identities, categories, names, txt_path)
+                    
+                # draw boxes of non tracked person
+                for person in persons_objs:
+                    if save_img or view_img:  # Add bbox to image
+                        label = f'{names[int(person[5])]} {conf:.2f}'
+                        plot_one_box(person[:4], im0, label=label, color=colors[int(person[5])], line_thickness=1)
+                
+                # draw boxes of behicles
+                for vehicle in vehicles_objs:
+                    if save_img or view_img:  # Add bbox to image
+                        label = f'{names[int(vehicle[5])]} {conf:.2f}'
+                        plot_one_box(vehicle[:4], im0, label=label, color=colors[int(vehicle[5])], line_thickness=1)
 
+                '''
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
@@ -177,11 +208,7 @@ def detect(save_img=False):
                         line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
                         with open(txt_path + '.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
-
-                    if save_img or view_img:  # Add bbox to image
-                        label = f'{names[int(cls)]} {conf:.2f}'
-                        if cls != 0:
-                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
+                '''
 
             # Print time (inference + NMS)
             print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
