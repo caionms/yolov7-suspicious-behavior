@@ -890,3 +890,12 @@ def increment_path(path, exist_ok=True, sep=''):
         i = [int(m.groups()[0]) for m in matches if m]  # indices
         n = max(i) + 1 if i else 2  # increment number
         return f"{path}{sep}{n}"  # update path
+
+def calcula_tempo(tempos, id, fps):
+    #testa se a pessoa ja existe no dicionario
+    if id not in tempos:
+        tempos[id] = 1
+    else:
+        if(tempos[id]/fps > 3): # se a pessoa efetuou a pose por 3 segundos
+            return True
+    return False

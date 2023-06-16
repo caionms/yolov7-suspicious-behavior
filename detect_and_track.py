@@ -102,10 +102,15 @@ def detect(save_img=False):
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
     old_img_w = old_img_h = imgsz
     old_img_b = 1
+    
+    # Criar um dicionário vazio para armazenar os tempos
+    tempos = {} 
 
     t0 = time.time()
     
     for path, img, im0s, vid_cap in dataset:
+        fps = vid_cap.get(cv2.CAP_PROP_FPS)
+        
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -187,7 +192,7 @@ def detect(save_img=False):
                     bbox_xyxy = tracked_dets[:,:4]
                     identities = tracked_dets[:, 8]
                     categories = tracked_dets[:, 4]
-                    draw_boxes(im0, bbox_xyxy, vehicles_objs, identities, categories, names, txt_path)
+                    draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
                     
                 # draw boxes of non tracked person
                 for person in persons_objs:

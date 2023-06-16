@@ -18,7 +18,7 @@ import yaml
 from PIL import Image, ImageDraw, ImageFont
 from scipy.signal import butter, filtfilt
 
-from utils.general import xywh2xyxy, xyxy2xywh
+from utils.general import xywh2xyxy, xyxy2xywh, calcula_tempo
 from utils.metrics import fitness
 
 # Settings
@@ -490,7 +490,8 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
 
 #............................... Bounding Boxes Drawing ............................
 """Function to Draw Bounding boxes"""
-def draw_boxes(img, bbox, vehicles_objs, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
+def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
+    pessoas_atualizadas = []
     for i, box in enumerate(bbox):
         x1, y1, x2, y2 = [int(i) for i in box]
         x1 += offset[0]
@@ -499,13 +500,27 @@ def draw_boxes(img, bbox, vehicles_objs, identities=None, categories=None, names
         y2 += offset[1]
         cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
+        
+        #..................CALCULA TEMPO....................
+        pessoas_atualizadas.append(id)
+        is_suspeito = calcula_tempo(tempos, id, fps)
+        
+        r, g, b = 0,165,255
+        
+        if(is_suspeito):
+            r, g, b = 0, 0, 255 #RED - Ordem inversa
+        
         data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
         label = str(id) + ": proximo de um veiculo" #+ names[cat]
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
-        cv2.rectangle(img, (x1, y1), (x2, y2), (255,165,0), 2)
-        cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (255,165,0), -1)
+        cv2.rectangle(img, (x1, y1), (x2, y2), (r, g, b), 2)
+        cv2.rectangle(img, (x1, y1 - 20), (x1 + w, y1), (r, g, b), -1)
         cv2.putText(img, label, (x1, y1 - 5),cv2.FONT_HERSHEY_SIMPLEX, 
                     0.6, [255, 255, 255], 1)
         # cv2.circle(img, data, 6, color,-1)   #centroid of box
+        
+    #remove os ids que não estão mais proximos a veiculos
+    map(tempos.pop, [key for key in tempos if key not in pessoas_atualizadas])
+    
     return img
 #..............................................................................
