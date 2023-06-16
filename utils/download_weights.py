@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 WEIGHTS_URL = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt"   # ?dl=1"
 
 # Pre-trained keypoints weights for YoloV7 model
-WEIGHTS_URL = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt" 
+WEIGHTS_KPTS_URL = "https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6-pose.pt" 
 
 
 def download(dest_path, url=None, file_name=None):
