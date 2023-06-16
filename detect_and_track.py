@@ -173,7 +173,7 @@ def detect(save_img=False):
                 # chamada para calcular interseção
                 for person_box in persons_objs: 
                     for vehicle_box in vehicles_objs:
-                        if bbox_iou_vehicle(vehicle_box, person_box) > 0.10:
+                        if bbox_iou_vehicle(vehicle_box, person_box[:4]) > 0.10:
                             dets_to_sort = np.vstack((dets_to_sort, 
                                 person_box))
                         
