@@ -231,7 +231,7 @@ def detect(save_img=False):
                             #ajusta a escala da bbox
                             [x1,y1,x2,y2] = scale_coords_kpts(img.shape[2:], [x1,y1,x2,y2], im0.shape).round()
                             #guarda os keypoints no dicionário
-                            dic[idx] = keypoints
+                            dic[idx] = kpts
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
