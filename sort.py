@@ -99,8 +99,11 @@ class KalmanBoxTracker(object):
         CY = (bbox[1]+bbox[3])//2
         self.centroidarr.append((CX,CY))
         
+        #keep id of keypoints dictionary
+        self.idxkpts = bbox[4]
+        
         #keep yolov5 detected class information
-        self.detclass = bbox[5]
+        self.detclass = bbox[6]
 
         # If we want to store bbox
         self.bbox_history = [bbox]
@@ -114,7 +117,8 @@ class KalmanBoxTracker(object):
         self.hits += 1
         self.hit_streak += 1
         self.kf.update(convert_bbox_to_z(bbox))
-        self.detclass = bbox[5]
+        self.idxkpts = bbox[4]
+        self.detclass = bbox[6]
         CX = (bbox[0]+bbox[2])//2
         CY = (bbox[1]+bbox[3])//2
         self.centroidarr.append((CX,CY))
@@ -183,6 +187,7 @@ def associate_detections_to_trackers(detections, trackers, iou_threshold = 0.3):
     for d, det in enumerate(detections):
         if(d not in matched_indices[:,0]):
             unmatched_detections.append(d)
+            
     print("unmatched_detections")
     print(unmatched_detections)
     
@@ -292,6 +297,8 @@ class Sort(object):
           if np.any(np.isnan(pos)):
               to_del.append(t)
       trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
+      print('tracking')
+      print(trks)
       for t in reversed(to_del):
           self.trackers.pop(t)
       matched, unmatched_dets, unmatched_trks = associate_detections_to_trackers(dets, trks, self.iou_threshold)

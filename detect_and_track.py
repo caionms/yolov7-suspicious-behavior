@@ -253,6 +253,7 @@ def detect(save_img=False):
                 
                 # draw boxes of tracked person
                 if len(tracked_dets)>0:
+                    print('tracked dets')
                     print(tracked_dets)
                     bbox_xyxy = tracked_dets[:,:4]
                     categories = tracked_dets[:, 4]
