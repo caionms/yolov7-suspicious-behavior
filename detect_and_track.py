@@ -214,24 +214,29 @@ def detect(save_img=False):
                     nimg = nimg.cpu().numpy().astype(np.uint8)
                     nimg = cv2.cvtColor(nimg, cv2.COLOR_RGB2BGR)
                     '''
+                    #dicionario auxiliar para acesso de keypoints
+                    dic = {}
 
                     for idx in range(output.shape[0]):
                         class_id = output[idx, 1]
-                        x = output[idx, 2]
-                        y = output[idx, 3]
-                        w = output[idx, 4]
-                        h = output[idx, 5]
-                        conf = output[idx, 6]
-                        kpts = scale_keypoints_kpts(nimg.shape[2:], output[idx, 7:].T, im0.shape).round()
-                        #guarda valores para tracking
-                        x1,y1,x2,y2 = xywh2xyxy_personalizado([x, y, w, h])
-                        #ajusta a escala da bbox
-                        [x1,y1,x2,y2] = scale_coords_kpts(img.shape[2:], [x1,y1,x2,y2], im0.shape).round()
-                        #guarda as detecções de pessoas para o tracker
-                        dets_to_sort = np.vstack((dets_to_sort, 
-                                np.array([x1, y1, x2, y2, conf, class_id, kpts])))
-                        #faz desenho dos esqueletos - usar o im0
-                        plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
+                        if class_id == 0:
+                            x = output[idx, 2]
+                            y = output[idx, 3]
+                            w = output[idx, 4]
+                            h = output[idx, 5]
+                            conf = output[idx, 6]
+                            kpts = scale_keypoints_kpts(nimg.shape[2:], output[idx, 7:].T, im0.shape).round()
+                            #guarda valores para tracking
+                            x1,y1,x2,y2 = xywh2xyxy_personalizado([x, y, w, h])
+                            #ajusta a escala da bbox
+                            [x1,y1,x2,y2] = scale_coords_kpts(img.shape[2:], [x1,y1,x2,y2], im0.shape).round()
+                            #guarda os keypoints no dicionário
+                            dic[idx] = keypoints
+                            #guarda as detecções de pessoas para o tracker
+                            dets_to_sort = np.vstack((dets_to_sort, 
+                                    np.array([x1, y1, x2, y2, class_id, idx, conf])))
+                            #faz desenho dos esqueletos - usar o im0
+                            plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort) if keypoints == 0 else sort_tracker.update_kpts(dets_to_sort)
@@ -240,11 +245,18 @@ def detect(save_img=False):
                 
                 # draw boxes of tracked person
                 if len(tracked_dets)>0:
-                    print('tracked_dets')
-                    print(tracked_dets)
                     bbox_xyxy = tracked_dets[:,:4]
-                    identities = tracked_dets[:, 8]
+                    print('bbox_xyxy')
+                    print(bbox_xyxy)
                     categories = tracked_dets[:, 4]
+                    print('categories')
+                    print(categories)
+                    kpts_idxs = tracked_dets[:, 5]
+                    print('kpts_idxs')
+                    print(kpts_idxs)
+                    identities = tracked_dets[:, 6]
+                    print('identities')
+                    print(identities)
                     #draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
                     
                 # draw boxes of non tracked person

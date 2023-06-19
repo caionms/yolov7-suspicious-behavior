@@ -272,10 +272,8 @@ class Sort(object):
     def update_kpts(self, dets=np.empty((0, 7))):
       """
       Parameters:
-      'dets' - a numpy array of detection in the format [[x1, y1, x2, y2, score, class_id, idx], [x1, y1, x2, y2, conf, class_id, idx], ...]
-      
-      Ensure to call this method even frame has no detections. (pass np.empty((0, 5)))
-      
+      'dets' - a numpy array of detection in the format [[x1, y1, x2, y2, class_id, idx, conf], [x1, y1, x2, y2, class_id, idx, conf], ...]
+            
       Returns a similar array, where the last column is object ID (replacing confidence score)
       
       NOTE: The number of objects returned may differ from the number of objects provided.
@@ -288,7 +286,7 @@ class Sort(object):
       ret = []
       for t, trk in enumerate(trks):
           pos = self.trackers[t].predict()[0]
-          trk[:] = [pos[0], pos[1], pos[2], pos[3], 0, 0, []]  # Adicionado o array vazio para keypoints
+          trk[:] = [pos[0], pos[1], pos[2], pos[3], 0, 0, 0]  # Adicionado o array vazio para keypoints
           if np.any(np.isnan(pos)):
               to_del.append(t)
       trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
