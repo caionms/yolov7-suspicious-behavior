@@ -235,14 +235,13 @@ def detect(save_img=False):
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
-                            bbox_xyxy = tracked_dets[:,:4]
-                            print('old bbox_xyxy')
+                            print('bbox_xyxy')
                             print([x1,y1,x2,y2])
-                            print('old categories')
+                            print('class id')
                             print(class_id)
-                            print('old kpts_idxs')
+                            print('kpts_idxs')
                             print(idx)
-                            print('old identities')
+                            print('conf')
                             print(conf)
                             #faz desenho dos esqueletos - usar o im0
                             plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
@@ -254,18 +253,11 @@ def detect(save_img=False):
                 
                 # draw boxes of tracked person
                 if len(tracked_dets)>0:
+                    print(tracked_dets)
                     bbox_xyxy = tracked_dets[:,:4]
-                    print('bbox_xyxy')
-                    print(bbox_xyxy)
                     categories = tracked_dets[:, 4]
-                    print('categories')
-                    print(categories)
                     kpts_idxs = tracked_dets[:, 5]
-                    print('kpts_idxs')
-                    print(kpts_idxs)
                     identities = tracked_dets[:, 6]
-                    print('identities')
-                    print(identities)
                     #draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
                     
                 # draw boxes of non tracked person

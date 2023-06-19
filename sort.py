@@ -183,6 +183,8 @@ def associate_detections_to_trackers(detections, trackers, iou_threshold = 0.3):
     for d, det in enumerate(detections):
         if(d not in matched_indices[:,0]):
             unmatched_detections.append(d)
+    print("unmatched_detections")
+    print(unmatched_detections)
     
     unmatched_trackers = []
     for t, trk in enumerate(trackers):
@@ -324,7 +326,7 @@ def parse_args():
     parser.add_argument("--phase", help="Subdirectory in seq_path.", type=str, default='train')
     parser.add_argument("--max_age", 
                         help="Maximum number of frames to keep alive a track without associated detections.", 
-                        type=int, default=1)
+                        type=int, default=30) #1 segundo (30 frames) sem referência antes de perder o tracking
     parser.add_argument("--min_hits", 
                         help="Minimum number of associated detections before track is initialised.", 
                         type=int, default=3)
