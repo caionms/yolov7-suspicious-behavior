@@ -155,3 +155,13 @@ def scale_keypoints_kpts(img1_shape, keypoints, img0_shape, ratio_pad=None):
     #chama o método de clip
     tensor = clip_keypoints_kpts(keypoints, img0_shape)
     return tensor.detach().numpy()
+
+def clip_keypoints_kpts(keypoints, img_shape):
+    # Clip bounding [x,y] keypoints to image shape (height, width)
+    np_array = np.array(keypoints)
+    tensor = torch.from_numpy(np_array)
+    for i in range(17):
+      # [x1,y1,conf1,x2,y2,conf2,...,x17,y7,conf17]
+      tensor[(3*i)].clamp_(0, img_shape[1])  # x
+      tensor[(3*i)+1].clamp_(0, img_shape[0])  # y padding
+    return tensor
