@@ -174,6 +174,16 @@ def xywh2xyxy_personalizado(boxes):
     y2 = y + h / 2
     return [x1, y1, x2, y2]
 
+def clip_coords_kpts(boxes, img_shape):
+    # Clip bounding [x1,y1,x2,y2] bounding boxes to image shape (height, width)
+    np_array = np.array(boxes)
+    tensor = torch.from_numpy(np_array)
+    tensor[0].clamp_(0, img_shape[1])  # x1
+    tensor[1].clamp_(0, img_shape[0])  # y1
+    tensor[2].clamp_(0, img_shape[1])  # x2
+    tensor[3].clamp_(0, img_shape[0])  # y2
+    return tensor
+
 def scale_coords_kpts(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords [x1,y1,x2,y2] from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
