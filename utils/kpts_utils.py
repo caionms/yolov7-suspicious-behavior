@@ -163,43 +163,7 @@ def xywh2xyxy_personalizado_2(x, w=640, h=640, padw=0, padh=0):
     y[3] = h * (x[1] + x[3] / 2) + padh  # bottom right y
     return y
   
-def bbox_iou_vehicle(box1, box2):
-    """
-    Calcula o Índice de sobreposição de Jaccard (IoU) entre duas caixas delimitadoras.
 
-    Parâmetros:
-    box1: list[float]
-        Lista contendo as coordenadas [x1, y1, x2, y2] da primeira caixa delimitadora.
-    box2: list[float]
-        Lista contendo as coordenadas [x1, y1, x2, y2] da segunda caixa delimitadora.
-
-    Retorna:
-    float
-        O valor do Índice de sobreposição de Jaccard (IoU) entre as duas caixas delimitadoras.
-    """
-    x1_box1, y1_box1, x2_box1, y2_box1 = box1
-    x1_box2, y1_box2, x2_box2, y2_box2 = box2
-
-    # Coordenadas da intersecção
-    x1_intersection = max(x1_box1, x1_box2)
-    y1_intersection = max(y1_box1, y1_box2)
-    x2_intersection = min(x2_box1, x2_box2)
-    y2_intersection = min(y2_box1, y2_box2)
-
-    # Área da intersecção
-    intersection_area = max(0, x2_intersection - x1_intersection + 1) * max(0, y2_intersection - y1_intersection + 1)
-
-    # Áreas das caixas delimitadoras
-    box1_area = (x2_box1 - x1_box1 + 1) * (y2_box1 - y1_box1 + 1)
-    box2_area = (x2_box2 - x1_box2 + 1) * (y2_box2 - y1_box2 + 1)
-
-    # União das áreas
-    union_area = box1_area + box2_area - intersection_area
-
-    # Cálculo do IoU
-    iou = intersection_area / union_area
-
-    return iou
   
 def scale_coords_kpts(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords [x1,y1,x2,y2] from img1_shape to img0_shape

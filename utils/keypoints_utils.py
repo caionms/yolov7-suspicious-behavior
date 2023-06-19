@@ -203,3 +203,101 @@ def scale_coords_kpts(img1_shape, coords, img0_shape, ratio_pad=None):
         coords[i] /= gain
     tensor = clip_coords_kpts(coords, img0_shape)
     return tensor.detach().numpy()
+
+def is_squat_v4(kpts, steps):
+  #angulo interno
+  kpts_ind_joelho_dir_int = [12, 14, 16] 
+  kpts_ind_joelho_esq_int = [11, 13, 15]
+
+  angle_joelho_dir_int = three_points_angle(kpts, kpts_ind_joelho_dir_int, steps)
+  angle_joelho_esq_int = three_points_angle(kpts, kpts_ind_joelho_esq_int, steps)
+
+  #angulo externo
+  kpts_ind_joelho_dir_ext = [12, 14] 
+  kpts_ind_joelho_esq_ext = [11, 13]
+
+  #angle_joelho_dir_ext = knee_valgus_angle(kpts, kpts_ind_joelho_dir_ext, steps)
+  #angle_joelho_esq_ext = knee_valgus_angle(kpts, kpts_ind_joelho_esq_ext, steps)
+
+  angle_joelho_dir_ext = 180 - angle_joelho_dir_int
+  angle_joelho_esq_ext = 180 - angle_joelho_esq_int
+
+  #media dos angulos
+  avg_leg_angle_ext = ((angle_joelho_esq_ext) + (angle_joelho_dir_ext)) // 2
+  avg_leg_angle_int = ((angle_joelho_esq_int) + (angle_joelho_dir_int)) // 2
+
+  status = False
+
+  if(is_front(kpts, steps)):
+    print('A pessoa está de frente!')
+    if(avg_leg_angle_int < 145):
+      status = True
+  else:
+    print('A pessoa está de lado!')
+    if(avg_leg_angle_ext > 80): 
+      status = True
+  
+  return status
+
+def is_front(kpts, steps):
+  x_nariz, y_nariz = kpts[steps * 0], kpts[steps * 0 + 1]
+
+  x_olho_esquerdo, y_olho_esquerdo = kpts[steps * 1], kpts[steps * 1 + 1]
+  x_olho_direito, y__olho_direito = kpts[steps * 2], kpts[steps * 2 + 1]
+
+  coord_x_olhos = sorted([x_olho_esquerdo, x_olho_direito])
+
+  x_ouvido_esquerdo, y_ouvido_esquerdo = kpts[steps * 3], kpts[steps * 3 + 1]
+  x_ouvido_direito, y_ouvido_direito = kpts[steps * 4], kpts[steps * 4 + 1]
+
+  coord_x_ouvidos = sorted([x_ouvido_esquerdo, x_ouvido_direito])
+
+  #print('Nariz = ' + str(x_nariz))
+  #print('Olhos direito e esquerdo = ' + str(x_olho_direito) + ' = ' + str(x_olho_esquerdo))
+  #print('Ouvidos direito e esquerdo = ' + str(x_ouvido_direito) + ' = ' + str(x_ouvido_esquerdo))
+
+  #Se o nariz não estiver entre os olhos ou entre os ouvidos, está de lado
+  if(not (x_nariz >= coord_x_olhos[0] and x_nariz<=coord_x_olhos[1]) 
+    or not (x_nariz >= coord_x_ouvidos[0] and x_nariz<=coord_x_ouvidos[1])):
+    return False
+  else:
+    return True
+
+def three_points_angle(kpts, kpts_ind, steps):
+  #Line 1 = k_1-k_2 / Line 2 = k_2-k_3
+  k_1, k_2, k_3 = kpts_ind[0], kpts_ind[1], kpts_ind[2]
+
+  #p1
+  x1_coord, y1_coord = kpts[steps * k_1], kpts[steps * k_1 + 1]
+  #p2
+  x2_coord, y2_coord = kpts[steps * k_2], kpts[steps * k_2 + 1]
+  #p3
+  x3_coord, y3_coord = kpts[steps * k_3], kpts[steps * k_3 + 1]
+  
+  # Calculate the vectors
+  v1 = (x1_coord - x2_coord, y1_coord - y2_coord)
+  v2 = (x3_coord - x2_coord, y3_coord - y2_coord)
+
+  # Calculate the dot product
+  dot_product = v1[0]*v2[0] + v1[1]*v2[1]
+
+  # Calculate the magnitudes of the vectors
+  v1_mag = math.sqrt(v1[0]**2 + v1[1]**2)
+  v2_mag = math.sqrt(v2[0]**2 + v2[1]**2)
+
+  # Calculate the angle between the vectors
+  angle = math.acos(dot_product / (v1_mag * v2_mag))
+
+  #print('Radianos - ' + str(angle))
+
+  # Convert the angle from radians to degrees
+  angle_degrees = math.degrees(angle)
+
+  #print('Graus - ' + str(angle_degrees))
+
+  # Adjust the angle
+  #angle_degrees = np.abs(angle_degrees)
+  #if angle_degrees > 90:
+  #    angle_degrees = 180 - angle_degrees
+
+  return angle_degrees 
