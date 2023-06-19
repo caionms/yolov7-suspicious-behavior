@@ -194,7 +194,7 @@ def detect(save_img=False):
                             break
                         
                 #se ocorreu interseccao
-                if(test_squat and not np.any(dets_to_sort)):
+                if(test_squat):
                     #carrega o modelo de keypoints
                     if model_kpts == None: 
                         model_kpts = load_model(device)
@@ -235,6 +235,15 @@ def detect(save_img=False):
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
+                #se não ocorreu interseção e é para ter keypoints
+                #então plota box para todas as pessoas sem esqueleto
+                elif keypoints == 1:
+                    # draw boxes of non tracked person
+                    for person in persons_objs:
+                        if save_img or view_img:  # Add bbox to image
+                            label = 'pessoa'
+                            plot_one_box(person[:4], im0, label=label, color=colors[int(person[-1])], line_thickness=1)
+                    
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort) if keypoints == 0 else sort_tracker.update_kpts(dets_to_sort)
