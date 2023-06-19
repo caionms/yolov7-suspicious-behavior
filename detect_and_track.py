@@ -112,6 +112,7 @@ def detect(save_img=False):
 
     t0 = time.time()
     
+    #im0s é o array e img é o tensor
     for path, img, im0s, vid_cap in dataset:
         fps = None
         if vid_cap is not None:
@@ -199,7 +200,7 @@ def detect(save_img=False):
                 if(test_squat and not np.any(dets_to_sort)): #se test squat não for vazio
                     if model_kpts == None: 
                         model_kpts = load_model(device)
-                    output, nimg = run_inference(im0s, model_kpts,device)
+                    output, nimg = run_inference(img, model_kpts,device)
                     output = non_max_suppression_kpt(output, 
                                      0.25, # Confidence Threshold
                                      0.65, # IoU Threshold
