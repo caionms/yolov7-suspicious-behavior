@@ -237,7 +237,7 @@ def detect(save_img=False):
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
                             bbox_xyxy = tracked_dets[:,:4]
                             print('old bbox_xyxy')
-                            print(x1, y1, x2, y2)
+                            print([x1,y1,x2,y2])
                             print('old categories')
                             print(class_id)
                             print('old kpts_idxs')
