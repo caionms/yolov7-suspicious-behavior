@@ -16,17 +16,12 @@ from numpy import random
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
-    scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path, non_max_suppression_kpt
+    scale_coords, strip_optimizer, set_logging, increment_path, non_max_suppression_kpt
 from utils.plots import plot_one_box, draw_boxes, output_to_keypoint
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
 
-from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts, scale_keypoints_kpts
-
-#For keypoint detection
-#from utils.general import non_max_suppression_kpt
-#from utils.plots import output_to_keypoint,plot_one_box_kpt
-#from utils.kpts_utils import bbox_iou_vehicle, run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts
+from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts, scale_keypoints_kpts, xywh2xyxy_personalizado, scale_coords_kpts
 
 #For SORT tracking
 import skimage
@@ -173,7 +168,8 @@ def detect(save_img=False):
                     
                  #..................USE TRACK FUNCTION....................
                 #pass an empty array to sort
-                dets_to_sort = np.empty((0,6))
+                #6 para apenas deteccao / 7 para deteccao com keypoints
+                dets_to_sort = np.empty((0,6)) if keypoints == 0 else np.empty((0,7))
                 
                 # NOTE: We send in detected object class too
                 for x1,y1,x2,y2,conf,detclass in det.cpu().detach().numpy():
@@ -197,9 +193,12 @@ def detect(save_img=False):
                             persons_objs.pop(aux)
                             break
                         
-                if(test_squat and not np.any(dets_to_sort)): #se test squat não for vazio
+                #se ocorreu interseccao
+                if(test_squat and not np.any(dets_to_sort)):
+                    #carrega o modelo de keypoints
                     if model_kpts == None: 
                         model_kpts = load_model(device)
+                    #faz deteccao de keypoints - utilizar o img
                     output, nimg = run_inference(img, model_kpts,device)
                     output = non_max_suppression_kpt(output, 
                                      0.25, # Confidence Threshold
@@ -217,26 +216,35 @@ def detect(save_img=False):
                     '''
 
                     for idx in range(output.shape[0]):
+                        class_id = output[idx, 1]
                         x = output[idx, 2]
                         y = output[idx, 3]
                         w = output[idx, 4]
                         h = output[idx, 5]
                         conf = output[idx, 6]
                         kpts = scale_keypoints_kpts(nimg.shape[2:], output[idx, 7:].T, im0.shape).round()
+                        #guarda valores para tracking
+                        x1,y1,x2,y2 = xywh2xyxy_personalizado([x, y, w, h])
+                        #ajusta a escala da bbox
+                        [x1,y1,x2,y2] = scale_coords_kpts(img.shape[2:], [x1,y1,x2,y2], im0.shape).round()
+                        #guarda as detecções de pessoas para o tracker
+                        dets_to_sort = np.vstack((dets_to_sort, 
+                                np.array([x1, y1, x2, y2, conf, class_id, kpts])))
+                        #faz desenho dos esqueletos - usar o im0
                         plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
-                    
-                        
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
-                tracks = sort_tracker.getTrackers()
+                #tracks = sort_tracker.getTrackers()
                 
                 # draw boxes of tracked person
                 if len(tracked_dets)>0:
+                    print('tracked_dets')
+                    print(tracked_dets)
                     bbox_xyxy = tracked_dets[:,:4]
                     identities = tracked_dets[:, 8]
                     categories = tracked_dets[:, 4]
-                    draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
+                    #draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
                     
                 # draw boxes of non tracked person
                 for person in persons_objs:

@@ -165,3 +165,31 @@ def clip_keypoints_kpts(keypoints, img_shape):
       tensor[(3*i)].clamp_(0, img_shape[1])  # x
       tensor[(3*i)+1].clamp_(0, img_shape[0])  # y padding
     return tensor
+
+def xywh2xyxy_personalizado(boxes): 
+    x, y, w, h = boxes[0], boxes[1], boxes[2], boxes[3]
+    x1 = x - w / 2
+    y1 = y - h / 2
+    x2 = x + w / 2
+    y2 = y + h / 2
+    return [x1, y1, x2, y2]
+
+def scale_coords_kpts(img1_shape, coords, img0_shape, ratio_pad=None):
+    # Rescale coords [x1,y1,x2,y2] from img1_shape to img0_shape
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+    
+    #[x1,y1,x2,y2]
+    coords[0] -= pad[0]  # x padding
+    coords[2] -= pad[0]  # x padding
+    coords[1] -= pad[1]  # y padding
+    coords[3] -= pad[1]  # y padding
+    
+    for i in range(len(coords)):
+        coords[i] /= gain
+    tensor = clip_coords_kpts(coords, img0_shape)
+    return tensor.detach().numpy()
