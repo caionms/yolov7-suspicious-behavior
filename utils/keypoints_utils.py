@@ -1,7 +1,7 @@
 from utils.datasets import letterbox
 import torch
 from torchvision import transforms
-from numpy import random
+import numpy as np
 import cv2
 
 
@@ -133,3 +133,25 @@ def plot_skeleton_kpts(im, xywh_person, conf_person, kpts, steps, orig_shape=Non
         if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
+        
+def scale_keypoints_kpts(img1_shape, keypoints, img0_shape, ratio_pad=None):
+    # Rescale coords of keypoints [x,y] from img1_shape to img0_shape
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+    
+    # [x1,y1,conf1,x2,y2,conf2,...,x17,y7,conf17]
+    for i in range(17):
+      keypoints[(3*i)] -= pad[0]  # x padding
+      keypoints[(3*i)+1] -= pad[1]  # y padding
+    
+    for i in range(17):
+      keypoints[(3*i)] /= gain  # x padding
+      keypoints[(3*i)+1] /= gain  # y padding
+
+    #chama o método de clip
+    tensor = clip_keypoints_kpts(keypoints, img0_shape)
+    return tensor.detach().numpy()

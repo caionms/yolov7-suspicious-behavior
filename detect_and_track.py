@@ -21,7 +21,7 @@ from utils.plots import plot_one_box, draw_boxes, output_to_keypoint
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
 
-from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts
+from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts, scale_keypoints_kpts
 
 #For keypoint detection
 #from utils.general import non_max_suppression_kpt
@@ -113,6 +113,7 @@ def detect(save_img=False):
     t0 = time.time()
     
     for path, img, im0s, vid_cap in dataset:
+        fps = None
         if vid_cap is not None:
             fps = vid_cap.get(cv2.CAP_PROP_FPS)
         
@@ -202,14 +203,17 @@ def detect(save_img=False):
                     output = non_max_suppression_kpt(output, 
                                      0.25, # Confidence Threshold
                                      0.65, # IoU Threshold
-                                     nc=model.yaml['nc'], # Number of Classes
-                                     nkpt=model.yaml['nkpt'], # Number of Keypoints
+                                     nc=model_kpts.yaml['nc'], # Number of Classes
+                                     nkpt=model_kpts.yaml['nkpt'], # Number of Keypoints
                                      kpt_label=True)
                     with torch.no_grad():
                             output = output_to_keypoint(output)
+                            
+                    '''
                     nimg = nimg[0].permute(1, 2, 0) * 255
                     nimg = nimg.cpu().numpy().astype(np.uint8)
                     nimg = cv2.cvtColor(nimg, cv2.COLOR_RGB2BGR)
+                    '''
 
                     for idx in range(output.shape[0]):
                         x = output[idx, 2]
@@ -217,7 +221,7 @@ def detect(save_img=False):
                         w = output[idx, 4]
                         h = output[idx, 5]
                         conf = output[idx, 6]
-                        kpts = output[idx, 7:].T
+                        kpts = scale_keypoints_kpts(nimg.shape[2:], output[idx, 7:].T, im0.shape).round()
                         plot_skeleton_kpts(nimg, [x,y,w,h], conf, kpts, 3)
                     
                         
