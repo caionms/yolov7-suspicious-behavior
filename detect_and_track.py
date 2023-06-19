@@ -199,7 +199,7 @@ def detect(save_img=False):
                 if(test_squat and not np.any(dets_to_sort)): #se test squat não for vazio
                     if model_kpts == None: 
                         model_kpts = load_model(device)
-                    output, nimg = run_inference(img, model_kpts,device)
+                    output, nimg = run_inference(im0s, model_kpts,device)
                     output = non_max_suppression_kpt(output, 
                                      0.25, # Confidence Threshold
                                      0.65, # IoU Threshold
@@ -222,7 +222,7 @@ def detect(save_img=False):
                         h = output[idx, 5]
                         conf = output[idx, 6]
                         kpts = scale_keypoints_kpts(nimg.shape[2:], output[idx, 7:].T, im0.shape).round()
-                        plot_skeleton_kpts(nimg, [x,y,w,h], conf, kpts, 3)
+                        plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                     
                         
                         
