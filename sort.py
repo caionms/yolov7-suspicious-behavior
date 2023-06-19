@@ -272,7 +272,7 @@ class Sort(object):
     def update_kpts(self, dets=np.empty((0, 7))):
       """
       Parameters:
-      'dets' - a numpy array of detection in the format [[x1, y1, x2, y2, class_id, idx, conf], [x1, y1, x2, y2, class_id, idx, conf], ...]
+      'dets' - a numpy array of detection in the format [[x1, y1, x2, y2, idx, conf, class_id], [x1, y1, x2, y2, idx, conf, class_id], ...]
             
       Returns a similar array, where the last column is object ID (replacing confidence score)
       

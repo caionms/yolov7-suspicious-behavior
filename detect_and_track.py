@@ -234,7 +234,16 @@ def detect(save_img=False):
                             dic[idx] = keypoints
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
-                                    np.array([x1, y1, x2, y2, class_id, idx, conf])))
+                                    np.array([x1, y1, x2, y2, idx, conf, class_id])))
+                            bbox_xyxy = tracked_dets[:,:4]
+                            print('old bbox_xyxy')
+                            print(x1, y1, x2, y2)
+                            print('old categories')
+                            print(class_id)
+                            print('old kpts_idxs')
+                            print(idx)
+                            print('old identities')
+                            print(conf)
                             #faz desenho dos esqueletos - usar o im0
                             plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                         
