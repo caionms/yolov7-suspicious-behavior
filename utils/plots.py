@@ -502,8 +502,10 @@ def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categorie
         id = int(identities[i]) if identities is not None else 0
         
         #..................CALCULA TEMPO....................
-        pessoas_atualizadas.append(id)
-        is_suspeito = calcula_tempo(tempos, id, fps)
+        is_suspeito = False
+        if(fps is not None):
+            pessoas_atualizadas.append(id)
+            is_suspeito = calcula_tempo(tempos, id, fps)
         
         r, g, b = 0,165,255
         

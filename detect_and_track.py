@@ -21,7 +21,7 @@ from utils.plots import plot_one_box, draw_boxes, output_to_keypoint
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
 
-from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference
+from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts
 
 #For keypoint detection
 #from utils.general import non_max_suppression_kpt
@@ -113,7 +113,8 @@ def detect(save_img=False):
     t0 = time.time()
     
     for path, img, im0s, vid_cap in dataset:
-        fps = vid_cap.get(cv2.CAP_PROP_FPS)
+        if vid_cap is not None:
+            fps = vid_cap.get(cv2.CAP_PROP_FPS)
         
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -217,7 +218,7 @@ def detect(save_img=False):
                         h = output[idx, 5]
                         conf = output[idx, 6]
                         kpts = output[idx, 7:].T
-                        plot_skeleton_kpts_v2(nimg, [x,y,w,h], conf, kpts, 3)
+                        plot_skeleton_kpts(nimg, [x,y,w,h], conf, kpts, 3)
                     
                         
                         
