@@ -161,6 +161,17 @@ class KalmanBoxTracker(object):
         
         return np.concatenate((convert_x_to_bbox(self.kf.x), arr_detclass, arr_u_dot, arr_v_dot, arr_s_dot), axis=1)
     
+    def get_state_kpts(self):
+        arr_detclass = np.expand_dims(np.array([self.detclass]), 0)
+        
+        arr_idxkpts = np.expand_dims(np.array([self.idxkpts]), 0)
+        
+        arr_u_dot = np.expand_dims(self.kf.x[4],0)
+        arr_v_dot = np.expand_dims(self.kf.x[5],0)
+        arr_s_dot = np.expand_dims(self.kf.x[6],0)
+        
+        return np.concatenate((convert_x_to_bbox(self.kf.x), arr_detclass, arr_idxkpts), axis=1)
+    
 def associate_detections_to_trackers(detections, trackers, iou_threshold = 0.3):
     """
     Assigns detections to tracked object (both represented as bounding boxes)
@@ -312,7 +323,9 @@ class Sort(object):
 
       i = len(self.trackers)
       for trk in reversed(self.trackers):
-          d = trk.get_state()[0]
+          d = trk.get_state_kpts()[0]
+          print('d do get state')
+          print(d)
           if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
               ret.append(np.concatenate((d, [trk.id + 1])).reshape(1, -1))  # +1'd because MOT benchmark requires positive value
           i -= 1
