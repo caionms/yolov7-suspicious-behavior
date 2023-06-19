@@ -17,11 +17,11 @@ from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
     scale_coords, strip_optimizer, set_logging, increment_path, non_max_suppression_kpt
-from utils.plots import plot_one_box, draw_boxes, output_to_keypoint
+from utils.plots import plot_one_box, draw_boxes, output_to_keypoint, draw_boxes_with_kpts
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
 
-from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, plot_skeleton_kpts, scale_keypoints_kpts, xywh2xyxy_personalizado, scale_coords_kpts
+from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference, scale_keypoints_kpts, xywh2xyxy_personalizado, scale_coords_kpts
 
 #For SORT tracking
 import skimage
@@ -235,9 +235,6 @@ def detect(save_img=False):
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
-                            
-                            #faz desenho dos esqueletos - usar o im0
-                            plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort) if keypoints == 0 else sort_tracker.update_kpts(dets_to_sort)
@@ -245,20 +242,25 @@ def detect(save_img=False):
                 #tracks = sort_tracker.getTrackers()
                 
                 # draw boxes of tracked person
-                if len(tracked_dets)>0:
-                    print('tracked dets')
-                    print(tracked_dets)
-                    bbox_xyxy = tracked_dets[:,:4]
-                    categories = tracked_dets[:, 4]
-                    kpts_idxs = tracked_dets[:, 5]
-                    identities = tracked_dets[:, 6]
-                    #draw_boxes(im0, bbox_xyxy, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
-                    
-                # draw boxes of non tracked person
-                for person in persons_objs:
-                    if save_img or view_img:  # Add bbox to image
-                        label = 'pessoa'
-                        plot_one_box(person[:4], im0, label=label, color=colors[int(person[-1])], line_thickness=1)
+                if keypoints == 1:
+                    # tracked - bbox, class, idx (para buscar kpts no dic)
+                    if len(tracked_dets)>0:
+                        bbox_xyxy = tracked_dets[:,:4]
+                        categories = tracked_dets[:, 4]
+                        kpts_idxs = tracked_dets[:, 5]
+                        identities = tracked_dets[:, 6]
+                        draw_boxes(im0, bbox_xyxy, kpts_idxs, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
+                else:
+                    if len(tracked_dets)>0:
+                        bbox_xyxy = tracked_dets[:,:4]
+                        identities = tracked_dets[:, 8]
+                        categories = tracked_dets[:, 4]
+                        draw_boxes_with_kpts(im0, bbox_xyxy, kpts_idxs, dic, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
+                    # draw boxes of non tracked person
+                    for person in persons_objs:
+                        if save_img or view_img:  # Add bbox to image
+                            label = 'pessoa'
+                            plot_one_box(person[:4], im0, label=label, color=colors[int(person[-1])], line_thickness=1)
                 
                 # draw boxes of behicles
                 for vehicle in vehicles_objs:

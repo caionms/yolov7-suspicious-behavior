@@ -891,12 +891,14 @@ def increment_path(path, exist_ok=True, sep=''):
         n = max(i) + 1 if i else 2  # increment number
         return f"{path}{sep}{n}"  # update path
 
-def calcula_tempo(tempos, id, fps):
+def calcula_tempo(tempos, id, fps, is_squat):
+    tempo_maximo = 4 if is_squat else 8
+                
     #testa se a pessoa ja existe no dicionario
     if id not in tempos:
         tempos[id] = 1
     else:
         tempos[id] = tempos[id]+1
-        if(tempos[id]/fps > 5): # se a pessoa efetuou a pose por 3 segundos
+        if(tempos[id]/fps > tempo_maximo): # se a pessoa efetuou a pose pelo tempo maximo
             return True
     return False

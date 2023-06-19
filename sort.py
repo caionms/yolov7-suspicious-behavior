@@ -161,6 +161,8 @@ class KalmanBoxTracker(object):
         
         return np.concatenate((convert_x_to_bbox(self.kf.x), arr_detclass, arr_u_dot, arr_v_dot, arr_s_dot), axis=1)
     
+    #retorna o valor definido do det passado para o track
+    # bbox, class, idx (para buscar kpts no dic)
     def get_state_kpts(self):
         arr_detclass = np.expand_dims(np.array([self.detclass]), 0)
         
@@ -316,16 +318,13 @@ class Sort(object):
 
       # Create and initialize new trackers for unmatched detections
       for i in unmatched_dets:
-          print('percorrendo unmatched tracks')
-          print(dets[i, :])
-          trk = KalmanBoxTracker(np.hstack((dets[i, :], np.array([0]), 0)))  # Adicionado o array vazio para keypoints
+          trk = KalmanBoxTracker(np.hstack((dets[i, :], np.array([0]), 0)))
           self.trackers.append(trk)
 
       i = len(self.trackers)
       for trk in reversed(self.trackers):
           d = trk.get_state_kpts()[0]
-          print('d do get state')
-          print(d)
+
           if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
               ret.append(np.concatenate((d, [trk.id + 1])).reshape(1, -1))  # +1'd because MOT benchmark requires positive value
           i -= 1

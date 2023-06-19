@@ -21,6 +21,8 @@ from scipy.signal import butter, filtfilt
 from utils.general import xywh2xyxy, xyxy2xywh, calcula_tempo
 from utils.metrics import fitness
 
+from utils.keypoints_utils import bbox_iou_vehicle, is_squat_v4
+
 # Settings
 matplotlib.rc('font', **{'size': 11})
 matplotlib.use('Agg')  # for writing to files only
@@ -487,10 +489,78 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
         if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
+        
+def plot_skeleton_kpts_v2(im, kpts, steps, box, orig_shape=None):
+    #Plot the skeleton and keypoints for coco datatset
+    palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
+                        [230, 230, 0], [255, 153, 255], [153, 204, 255],
+                        [255, 102, 255], [255, 51, 255], [102, 178, 255],
+                        [51, 153, 255], [255, 153, 153], [255, 102, 102],
+                        [255, 51, 51], [153, 255, 153], [102, 255, 102],
+                        [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
+                        [255, 255, 255]])
+
+    #Conexões entre keypoints
+    skeleton = [
+                #Rosto 
+                [1, 2], [1, 3], [2, 3], [2, 4], [3, 5], [4, 6], [5, 7],
+                #Braços
+                [6, 7], [6, 8], [7, 9],  [8, 10], [9, 11], 
+                #Tronco
+                [7, 13], [6, 12], [12, 13],
+                #Cintura e pernas
+                [14, 12], [15, 13], [16, 14], [17, 15]
+      ]
+
+    #Cores para as linhas (seguindo a ordem de skeleton)
+    pose_limb_color = palette[[16, 16, 16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 7, 7, 7, 9, 9, 9, 9]]
+    #Cores para keypoints (seguindo a ordem definida)
+    pose_kpt_color = palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
+    radius = 5
+    if isinstance(kpts, np.float64):
+      kpts = kpts.tolist()
+    num_kpts = len(kpts) // steps
+    is_suspect = False #Condição para saber se está agachado
+    r, g, b = 0, 0, 255 #RED - Ordem inversa
+    
+    #Plot keypoints
+    for kid in range(num_kpts):
+        if(not is_suspect):
+          r, g, b = pose_kpt_color[kid]
+        x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
+        #print('Keypoint ' + str(kid) + ': x - ' + str(x_coord) + ' / y - ' +  str(y_coord))
+        if not (x_coord % 640 == 0 or y_coord % 640 == 0):
+            if steps == 3:
+                conf = kpts[steps * kid + 2] # acima de 0.5 para considerar o ponto correto
+                if conf < 0.5:
+                    continue
+            if(kid == 61 or kid == 122 or kid == 113): # pinta de vermelho se é suspeito
+              r = g = b = 255
+            cv2.circle(im, (int(x_coord), int(y_coord)), radius, (int(r), int(g), int(b)), -1)
+            #plot_number(im, int(x_coord), int(y_coord), (int(r), int(g), int(b)), str(kid))
+
+
+    #Plot lines
+    for sk_id, sk in enumerate(skeleton):
+        if(not is_suspect):
+          r, g, b = pose_limb_color[sk_id]
+        pos1 = (int(kpts[(sk[0]-1)*steps]), int(kpts[(sk[0]-1)*steps+1]))
+        pos2 = (int(kpts[(sk[1]-1)*steps]), int(kpts[(sk[1]-1)*steps+1]))
+        if steps == 3:
+            conf1 = kpts[(sk[0]-1)*steps+2]
+            conf2 = kpts[(sk[1]-1)*steps+2]
+            if conf1<0.5 or conf2<0.5:
+                continue
+        if pos1[0]%640 == 0 or pos1[1]%640==0 or pos1[0]<0 or pos1[1]<0:
+            continue
+        if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
+            continue
+        cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
+    return is_suspect
 
 #............................... Bounding Boxes Drawing ............................
 """Function to Draw Bounding boxes"""
-def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
+def draw_boxes(img, bbox, tempos, fps, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
     pessoas_atualizadas = []
     for i, box in enumerate(bbox):
         x1, y1, x2, y2 = [int(i) for i in box]
@@ -508,12 +578,14 @@ def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categorie
             is_suspeito = calcula_tempo(tempos, id, fps)
         
         r, g, b = 0,165,255
+        name_class = "proximo de um veiculo"
         
         if(is_suspeito):
+            name_class = "suspeito"
             r, g, b = 0, 0, 255 #RED - Ordem inversa
         
         data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
-        label = str(id) + ": proximo de um veiculo"
+        label = str(id) + ": " + name_class
         if fps is not None:
           label = label + "(" + str(tempos[id]) + "f)"  #+ names[cat]
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
@@ -528,7 +600,7 @@ def draw_boxes(img, bbox, vehicles_objs, tempos, fps, identities=None, categorie
     
     return img
 
-def draw_boxes_with_kpts(img, bbox, vehicles_objs, tempos, fps, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
+def draw_boxes_with_kpts(img, bbox, kpts_idxs, dic, vehicles_objs, tempos, fps, identities=None, categories=None, names=None, save_with_object_id=False, path=None,offset=(0, 0)):
     pessoas_atualizadas = []
     for i, box in enumerate(bbox):
         x1, y1, x2, y2 = [int(i) for i in box]
@@ -539,19 +611,36 @@ def draw_boxes_with_kpts(img, bbox, vehicles_objs, tempos, fps, identities=None,
         #cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
         
+        #nome associado a deteccao
+        name_class = "pessoa"
+        
+        is_near_of_a_vehicle = False
+        #testa se esta proximo de um carro
+        for v_box in vehicles_objs: 
+            if bbox_iou_vehicle(box, v_box) > 0:
+                name_class = "proxima de um veiculo"
+                is_near_of_a_vehicle = True
+                break
+        
+        is_squat = False
+        #testa se esta agachado ou nao
+        if is_squat_v4(dic[kpts_idxs], 3):
+            is_squat = True
+            name_class = name_class + " agachada"
+            
+        r,g,b = cor_para_pessoa(is_near_of_a_vehicle, is_squat)
+        
         #..................CALCULA TEMPO....................
         is_suspeito = False
-        if(fps is not None):
+        if(fps is not None and is_near_of_a_vehicle):
             pessoas_atualizadas.append(id)
-            is_suspeito = calcula_tempo(tempos, id, fps)
-        
-        r, g, b = 0,165,255
+            is_suspeito = calcula_tempo(tempos, id, fps, is_squat)
         
         if(is_suspeito):
+            name_class = "suspeito"
             r, g, b = 0, 0, 255 #RED - Ordem inversa
         
-        data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
-        label = str(id) + ": proximo de um veiculo"
+        label = str(id) + ": " + name_class
         if fps is not None:
           label = label + "(" + str(tempos[id]) + "f)"  #+ names[cat]
         (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
@@ -562,7 +651,18 @@ def draw_boxes_with_kpts(img, bbox, vehicles_objs, tempos, fps, identities=None,
         # cv2.circle(img, data, 6, color,-1)   #centroid of box
         
     #remove os ids que não estão mais proximos a veiculos
-    map(tempos.pop, [key for key in tempos if key not in pessoas_atualizadas])
-    
+    if fps is not None:
+        map(tempos.pop, [key for key in tempos if key not in pessoas_atualizadas])
+
     return img
 #..............................................................................
+
+def cor_para_pessoa(is_near_of_a_vehicle, is_squat):
+    r, g, b = 172, 47, 117
+    if is_squat:
+        r, g, b = 0, 255, 255
+        if is_near_of_a_vehicle:
+            r, g, b = 30, 60, 230
+    elif is_near_of_a_vehicle:
+        r, g, b = 0, 165, 255
+    return r,g,b
