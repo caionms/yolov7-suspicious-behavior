@@ -234,7 +234,8 @@ def detect(save_img=False):
                         plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                         
                 # Run SORT
-                tracked_dets = sort_tracker.update(dets_to_sort)
+                tracked_dets = sort_tracker.update(dets_to_sort) if keypoints == 0 else sort_tracker.update_kpts(dets_to_sort)
+                
                 #tracks = sort_tracker.getTrackers()
                 
                 # draw boxes of tracked person
