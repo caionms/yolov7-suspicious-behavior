@@ -610,6 +610,12 @@ def draw_boxes_with_kpts(img, bbox, kpts_idxs, dic, vehicles_objs, tempos, fps, 
         y2 += offset[1]
         #cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
+        idx = int(kpts_idxs[i]) if kpts_idxs is not None else 0
+        print("idx dentro do plots")
+        print(idx)
+        print("kpts")
+        print(dic[idx])
+
         
         #nome associado a deteccao
         name_class = "pessoa"
@@ -624,7 +630,7 @@ def draw_boxes_with_kpts(img, bbox, kpts_idxs, dic, vehicles_objs, tempos, fps, 
         
         is_squat = False
         #testa se esta agachado ou nao
-        if is_squat_v4(dic[kpts_idxs], 3):
+        if is_squat_v4(dic[idx], 3):
             is_squat = True
             name_class = name_class + " agachada"
             
