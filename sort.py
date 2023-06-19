@@ -187,9 +187,6 @@ def associate_detections_to_trackers(detections, trackers, iou_threshold = 0.3):
     for d, det in enumerate(detections):
         if(d not in matched_indices[:,0]):
             unmatched_detections.append(d)
-            
-    print("unmatched_detections")
-    print(unmatched_detections)
     
     unmatched_trackers = []
     for t, trk in enumerate(trackers):
@@ -297,8 +294,7 @@ class Sort(object):
           if np.any(np.isnan(pos)):
               to_del.append(t)
       trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
-      print('tracking')
-      print(trks)
+
       for t in reversed(to_del):
           self.trackers.pop(t)
       matched, unmatched_dets, unmatched_trks = associate_detections_to_trackers(dets, trks, self.iou_threshold)
@@ -309,6 +305,8 @@ class Sort(object):
 
       # Create and initialize new trackers for unmatched detections
       for i in unmatched_dets:
+          print('percorrendo unmatched tracks')
+          print(dets[i, :])
           trk = KalmanBoxTracker(np.hstack((dets[i, :], np.array([0]), 0)))  # Adicionado o array vazio para keypoints
           self.trackers.append(trk)
 

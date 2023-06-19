@@ -235,14 +235,7 @@ def detect(save_img=False):
                             #guarda as detecções de pessoas para o tracker
                             dets_to_sort = np.vstack((dets_to_sort, 
                                     np.array([x1, y1, x2, y2, idx, conf, class_id])))
-                            print('bbox_xyxy')
-                            print([x1,y1,x2,y2])
-                            print('class id')
-                            print(class_id)
-                            print('kpts_idxs')
-                            print(idx)
-                            print('conf')
-                            print(conf)
+                            
                             #faz desenho dos esqueletos - usar o im0
                             plot_skeleton_kpts(im0, [x,y,w,h], conf, kpts, 3)
                         
