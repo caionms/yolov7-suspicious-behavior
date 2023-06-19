@@ -16,22 +16,24 @@ from numpy import random
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
-    scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
-from utils.plots import plot_one_box, draw_boxes
+    scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path, non_max_suppression_kpt
+from utils.plots import plot_one_box, draw_boxes, output_to_keypoint
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 from utils.download_weights import download
+
+from utils.keypoints_utils import bbox_iou_vehicle, load_model, run_inference
 
 #For keypoint detection
 #from utils.general import non_max_suppression_kpt
 #from utils.plots import output_to_keypoint,plot_one_box_kpt
-from utils.kpts_utils import bbox_iou_vehicle#, run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts
+#from utils.kpts_utils import bbox_iou_vehicle, run_inference, plot_skeleton_kpts_v2, xywh2xyxy_personalizado, scale_coords_kpts, scale_keypoints_kpts
 
 #For SORT tracking
 import skimage
 from sort import *
 
 def detect(save_img=False):
-    source, weights, view_img, save_txt, imgsz, trace = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace
+    source, weights, view_img, save_txt, imgsz, trace, keypoints = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.keypoints
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -77,6 +79,8 @@ def detect(save_img=False):
 
     if half:
         model.half()  # to FP16
+        
+    model_kpts = None
 
     # Second-stage classifier
     classify = False
@@ -175,16 +179,47 @@ def detect(save_img=False):
                     elif detclass == 2 or detclass == 3: #adiciona os veiculos na lista
                         vehicles_objs.append([x1,y1,x2,y2])
                         
+                #vetor auxiliar que guarda as pessoas que sofreram interseção
+                test_squat = []
+                        
                 # chamada para calcular interseção
                 for aux, person_box in enumerate(persons_objs): 
                     for vehicle_box in vehicles_objs:
                         if bbox_iou_vehicle(vehicle_box, person_box[:4]) > 0:
-                            dets_to_sort = np.vstack((dets_to_sort, 
-                                person_box.copy()))
+                            if(keypoints == 1):
+                                test_squat.append(person_box)
+                            else:
+                                dets_to_sort = np.vstack((dets_to_sort, person_box.copy()))
                             # Remover person_box de persons_objs
                             persons_objs.pop(aux)
-                            # Pular para a próxima iteração do for de person_box
                             break
+                        
+                if(test_squat and not np.any(dets_to_sort)): #se test squat não for vazio
+                    if model_kpts == None: 
+                        model_kpts = load_model(device)
+                    output, nimg = run_inference(img, model_kpts,device)
+                    output = non_max_suppression_kpt(output, 
+                                     0.25, # Confidence Threshold
+                                     0.65, # IoU Threshold
+                                     nc=model.yaml['nc'], # Number of Classes
+                                     nkpt=model.yaml['nkpt'], # Number of Keypoints
+                                     kpt_label=True)
+                    with torch.no_grad():
+                            output = output_to_keypoint(output)
+                    nimg = nimg[0].permute(1, 2, 0) * 255
+                    nimg = nimg.cpu().numpy().astype(np.uint8)
+                    nimg = cv2.cvtColor(nimg, cv2.COLOR_RGB2BGR)
+
+                    for idx in range(output.shape[0]):
+                        x = output[idx, 2]
+                        y = output[idx, 3]
+                        w = output[idx, 4]
+                        h = output[idx, 5]
+                        conf = output[idx, 6]
+                        kpts = output[idx, 7:].T
+                        plot_skeleton_kpts_v2(nimg, [x,y,w,h], conf, kpts, 3)
+                    
+                        
                         
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
@@ -274,6 +309,8 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
+    parser.add_argument('--keypoints', type=int, default=0, help='keypoints off or on, i.e. 0 or 1')
+    
     opt = parser.parse_args()
     print(opt)
     #check_requirements(exclude=('pycocotools', 'thop'))
