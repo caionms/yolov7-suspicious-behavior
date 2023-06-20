@@ -258,13 +258,13 @@ def detect(save_img=False):
                         categories = tracked_dets[:, 4]
                         kpts_idxs = tracked_dets[:, 5]
                         identities = tracked_dets[:, 6]
-                        draw_boxes_with_kpts(im0, bbox_xyxy, kpts_idxs, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
+                        draw_boxes_with_kpts(im0, bbox_xyxy, kpts_idxs, dic, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
                 else:
                     if len(tracked_dets)>0:
                         bbox_xyxy = tracked_dets[:,:4]
                         identities = tracked_dets[:, 8]
                         categories = tracked_dets[:, 4]
-                        draw_boxes(im0, bbox_xyxy, kpts_idxs, dic, vehicles_objs, tempos, fps, identities, categories, names, txt_path)
+                        draw_boxes(im0, bbox_xyxy, tempos, fps, identities, categories, names, txt_path)
                     # draw boxes of non tracked person
                     for person in persons_objs:
                         if save_img or view_img:  # Add bbox to image
