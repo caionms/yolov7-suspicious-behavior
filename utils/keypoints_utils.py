@@ -231,11 +231,11 @@ def is_squat_v4(kpts, steps):
 
   if(is_front(kpts, steps)):
     print('A pessoa está de frente!')
-    if(avg_leg_angle_int < 145):
+    if(angle_joelho_dir_int < 145 and angle_joelho_esq_int < 145 and avg_leg_angle_int < 130):
       status = True
   else:
     print('A pessoa está de lado!')
-    if(avg_leg_angle_ext > 80): 
+    if(angle_joelho_dir_ext > 60 and angle_joelho_esq_ext > 60 and avg_leg_angle_ext > 80): 
       status = True
   
   return status
