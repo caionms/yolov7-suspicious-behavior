@@ -348,7 +348,7 @@ if __name__ == '__main__':
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
     parser.add_argument('--keypoints', type=int, default=0, help='keypoints off or on, i.e. 0 or 1')
     parser.add_argument('--drive', action='store_true', help='use drive?')
-    parser.add_argument('--drive-path', type=str, default='/content/drive/MyDrive/Rodar/', help='path of videos on drive')
+    parser.add_argument('--save-path', type=str, default='/content/drive/MyDrive/Rodar/Resultados/', help='path to save videos')
     
     opt = parser.parse_args()
     print(opt)
