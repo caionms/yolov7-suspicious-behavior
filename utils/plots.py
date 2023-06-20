@@ -446,7 +446,7 @@ def output_to_keypoint(output):
     return np.array(targets)
 
 
-def plot_skeleton_kpts(im, kpts, steps, r,g,b, orig_shape=None):
+def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     #Plot the skeleton and keypointsfor coco datatset
     palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                         [230, 230, 0], [255, 153, 255], [153, 204, 255],
@@ -466,7 +466,7 @@ def plot_skeleton_kpts(im, kpts, steps, r,g,b, orig_shape=None):
     num_kpts = len(kpts) // steps
 
     for kid in range(num_kpts):
-        #r, g, b = pose_kpt_color[kid]
+        r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
         if not (x_coord % 640 == 0 or y_coord % 640 == 0):
             if steps == 3:
@@ -490,7 +490,7 @@ def plot_skeleton_kpts(im, kpts, steps, r,g,b, orig_shape=None):
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
         
-def plot_skeleton_kpts_v2(im, kpts, steps, box, orig_shape=None):
+def plot_skeleton_kpts_v2(im, kpts, steps, r,g,b, box, orig_shape=None):
     #Plot the skeleton and keypoints for coco datatset
     palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                         [230, 230, 0], [255, 153, 255], [153, 204, 255],
