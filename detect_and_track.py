@@ -28,7 +28,7 @@ import skimage
 from sort import *
 
 def detect(save_img=False):
-    source, weights, view_img, save_txt, imgsz, trace, keypoints = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.keypoints
+    source, weights, view_img, save_txt, imgsz, trace, keypoints, drive, drive_path = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.keypoints, opt.drive, opt.drive_path
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -311,9 +311,11 @@ def detect(save_img=False):
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        #rodar pelo drive
-                        save_path = '/content/drive/MyDrive/Rodar/' + save_path.rsplit("/", 1)[-1] + '_out.mp4'
-                        #save_path += '.mp4'
+                        if(drive):
+                            #rodar pelo drive
+                            save_path = drive_path + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
+                        else:
+                            save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
 
@@ -345,6 +347,8 @@ if __name__ == '__main__':
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
     parser.add_argument('--keypoints', type=int, default=0, help='keypoints off or on, i.e. 0 or 1')
+    parser.add_argument('--drive', action='store_true', help='use drive?')
+    parser.add_argument('--drive-path', type=str, default='/content/drive/MyDrive/Rodar/', help='path of videos on drive')
     
     opt = parser.parse_args()
     print(opt)
