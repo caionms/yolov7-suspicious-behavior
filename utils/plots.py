@@ -490,7 +490,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
         
-def plot_skeleton_kpts_v2(im, kpts, steps, r,g,b, box, orig_shape=None):
+def plot_skeleton_kpts_v2(im, kpts, steps, r,g,b, orig_shape=None):
     #Plot the skeleton and keypoints for coco datatset
     palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                         [230, 230, 0], [255, 153, 255], [153, 204, 255],
