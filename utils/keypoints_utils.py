@@ -4,6 +4,7 @@ from torchvision import transforms
 import numpy as np
 import cv2
 
+import math
 
 def bbox_iou_vehicle(box1, box2):
     """

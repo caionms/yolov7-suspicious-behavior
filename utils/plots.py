@@ -611,11 +611,6 @@ def draw_boxes_with_kpts(img, bbox, kpts_idxs, dic, vehicles_objs, tempos, fps, 
         #cat = int(categories[i]) if categories is not None else 0
         id = int(identities[i]) if identities is not None else 0
         idx = int(kpts_idxs[i]) if kpts_idxs is not None else 0
-        print("idx dentro do plots")
-        print(idx)
-        print("kpts")
-        print(dic[idx])
-
         
         #nome associado a deteccao
         name_class = "pessoa"
