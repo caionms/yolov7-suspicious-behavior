@@ -28,7 +28,7 @@ import skimage
 from sort import *
 
 def detect(save_img=False):
-    source, weights, view_img, save_txt, imgsz, trace, keypoints, drive, drive_path = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.keypoints, opt.drive, opt.drive_path
+    source, weights, view_img, save_txt, imgsz, trace, keypoints, drive, save_path_alt = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.keypoints, opt.drive, opt.save_path
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -313,7 +313,7 @@ def detect(save_img=False):
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
                         if(drive):
                             #rodar pelo drive
-                            save_path = drive_path + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
+                            save_path = save_path_alt + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
                         else:
                             save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
