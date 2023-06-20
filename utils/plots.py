@@ -446,7 +446,7 @@ def output_to_keypoint(output):
     return np.array(targets)
 
 
-def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
+def plot_skeleton_kpts(im, kpts, steps, r,g,b, orig_shape=None):
     #Plot the skeleton and keypointsfor coco datatset
     palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
                         [230, 230, 0], [255, 153, 255], [153, 204, 255],
@@ -466,7 +466,7 @@ def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     num_kpts = len(kpts) // steps
 
     for kid in range(num_kpts):
-        r, g, b = pose_kpt_color[kid]
+        #r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
         if not (x_coord % 640 == 0 or y_coord % 640 == 0):
             if steps == 3:
@@ -520,13 +520,11 @@ def plot_skeleton_kpts_v2(im, kpts, steps, box, orig_shape=None):
     if isinstance(kpts, np.float64):
       kpts = kpts.tolist()
     num_kpts = len(kpts) // steps
-    is_suspect = False #Condição para saber se está agachado
-    r, g, b = 0, 0, 255 #RED - Ordem inversa
     
     #Plot keypoints
     for kid in range(num_kpts):
-        if(not is_suspect):
-          r, g, b = pose_kpt_color[kid]
+        #if(not is_suspect):
+        #  r, g, b = pose_kpt_color[kid]
         x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
         #print('Keypoint ' + str(kid) + ': x - ' + str(x_coord) + ' / y - ' +  str(y_coord))
         if not (x_coord % 640 == 0 or y_coord % 640 == 0):
@@ -534,16 +532,15 @@ def plot_skeleton_kpts_v2(im, kpts, steps, box, orig_shape=None):
                 conf = kpts[steps * kid + 2] # acima de 0.5 para considerar o ponto correto
                 if conf < 0.5:
                     continue
-            if(kid == 61 or kid == 122 or kid == 113): # pinta de vermelho se é suspeito
-              r = g = b = 255
+            #if(kid == 61 or kid == 122 or kid == 113): # pinta de vermelho se é suspeito
+            #  r = g = b = 255
             cv2.circle(im, (int(x_coord), int(y_coord)), radius, (int(r), int(g), int(b)), -1)
             #plot_number(im, int(x_coord), int(y_coord), (int(r), int(g), int(b)), str(kid))
 
 
     #Plot lines
     for sk_id, sk in enumerate(skeleton):
-        if(not is_suspect):
-          r, g, b = pose_limb_color[sk_id]
+        #r, g, b = pose_limb_color[sk_id]
         pos1 = (int(kpts[(sk[0]-1)*steps]), int(kpts[(sk[0]-1)*steps+1]))
         pos2 = (int(kpts[(sk[1]-1)*steps]), int(kpts[(sk[1]-1)*steps+1]))
         if steps == 3:
@@ -556,7 +553,6 @@ def plot_skeleton_kpts_v2(im, kpts, steps, box, orig_shape=None):
         if pos2[0] % 640 == 0 or pos2[1] % 640 == 0 or pos2[0]<0 or pos2[1]<0:
             continue
         cv2.line(im, pos1, pos2, (int(r), int(g), int(b)), thickness=2)
-    return is_suspect
 
 #............................... Bounding Boxes Drawing ............................
 """Function to Draw Bounding boxes"""
@@ -640,6 +636,8 @@ def draw_boxes_with_kpts(img, bbox, kpts_idxs, dic, vehicles_objs, tempos, fps, 
         if(is_suspeito):
             name_class = "suspeito"
             r, g, b = 0, 0, 255 #RED - Ordem inversa
+            
+        plot_skeleton_kpts_v2(img, dic[idx], 3, r, g, b)
         
         label = str(id) + ": " + name_class
         if fps is not None:

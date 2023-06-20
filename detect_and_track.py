@@ -311,9 +311,9 @@ def detect(save_img=False):
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
-                            #rodar pelo drive
-                            save_path = '/content/drive/MyDrive/Rodar/' + save_path.rsplit("/", 1)[-1] + '_out.mp4'
-                            #save_path += '.mp4'
+                        #rodar pelo drive
+                        save_path = '/content/drive/MyDrive/Rodar/' + save_path.rsplit("/", 1)[-1] + '_out.mp4'
+                        #save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
 
