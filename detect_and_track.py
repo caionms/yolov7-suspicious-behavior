@@ -155,10 +155,9 @@ def detect(save_img=False):
 
             p = Path(p)  # to Path
             
+            save_path = str(save_dir / p.name)  # img.jpg
             if save_path_alt != "default":
                 save_path = save_path_alt + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
-            else: 
-                save_path = str(save_dir / p.name)  # img.jpg
                 
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
