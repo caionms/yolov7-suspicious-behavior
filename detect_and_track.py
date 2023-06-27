@@ -154,7 +154,12 @@ def detect(save_img=False):
                 p, s, im0, frame = path, '', im0s, getattr(dataset, 'frame', 0)
 
             p = Path(p)  # to Path
-            save_path = str(save_dir / p.name)  # img.jpg
+            
+            if save_path_alt != "default":
+                save_path = save_path_alt + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
+            else: 
+                save_path = str(save_dir / p.name)  # img.jpg
+                
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             if len(det):
@@ -294,7 +299,7 @@ def detect(save_img=False):
             if view_img:
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
-
+                
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'image':
@@ -311,10 +316,6 @@ def detect(save_img=False):
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        if(save_path_alt != ""):
-                            #rodar pelo drive
-                            save_path = save_path_alt + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
-                        else:
                             save_path += '.mp4'
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
@@ -347,7 +348,7 @@ if __name__ == '__main__':
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--no-trace', action='store_true', help='don`t trace model')
     parser.add_argument('--keypoints', type=int, default=0, help='keypoints off or on, i.e. 0 or 1')
-    parser.add_argument('--save-path', type=str, default=' ', help='path to save videos')
+    parser.add_argument('--save-path', type=str, default='default', help='path to save videos')
     
     opt = parser.parse_args()
     print(opt)
