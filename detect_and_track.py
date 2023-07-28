@@ -90,6 +90,7 @@ def detect(save_img=False):
         cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=imgsz, stride=stride)
     else:
+        #AQUI NO SOURCE ELE VE
         dataset = LoadImages(source, img_size=imgsz, stride=stride)
 
     # Get names and colors
@@ -155,6 +156,7 @@ def detect(save_img=False):
 
             p = Path(p)  # to Path
             
+            #os.system('ls -l') #ta dentro do yolo-sus...
             save_path = str(save_dir / p.name)  # img.jpg
             if save_path_alt != "default":
                 save_path = save_path_alt + (save_path.rsplit("/", 1)[-1]).replace('.mp4', '') +'_output.mp4'
@@ -316,6 +318,8 @@ def detect(save_img=False):
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
                             save_path += '.mp4'
+                        #entender pq aq não consegue visualizar o drive, mas fora consegue linha 93
+                        #os.system('cd /content') #ta dentro do yolo-sus...
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer.write(im0)
 
